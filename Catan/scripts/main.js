@@ -365,108 +365,111 @@ function formatTime(ms) {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-function gameLoop() {
-    
-    // ----------Time / FPS-----------
+function updateFrameStats() {
     elapsedTime = performance.now() - startTime;
-    let now = performance.now();
-    let delta = now - lastFrameTime;
+    const now = performance.now();
+    const delta = now - lastFrameTime;
     lastFrameTime = now;
 
-    let currentFPS = 1000 / delta;
+    const currentFPS = 1000 / delta;
     fps = fps * 0.9 + currentFPS * 0.1;
+}
 
-    // ----------Render-----------
-    // font
-    fillRect(ctx, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, [0,0,0]);
-    // map
-    drawLayers(posX, posY);
+function getCursorScreenPosition() {
+    return {
+        screenSourisX: Math.floor(mouseX / TILE_SIZE) * TILE_SIZE - posX % TILE_SIZE,
+        screenSourisY: Math.floor(mouseY / TILE_SIZE) * TILE_SIZE - posY % TILE_SIZE,
+        mapSourisX: Math.floor(mouseX / TILE_SIZE) + Math.floor(posX / TILE_SIZE),
+        mapSourisY: Math.floor(mouseY / TILE_SIZE) + Math.floor(posY / TILE_SIZE)
+    };
+}
 
-    // draw cursor
-    let screenSourisX = Math.floor(mouseX / TILE_SIZE) * TILE_SIZE - posX % TILE_SIZE;
-    let screenSourisY = Math.floor(mouseY / TILE_SIZE) * TILE_SIZE - posY % TILE_SIZE;
+function drawCursorPreview() {
+    const { screenSourisX, screenSourisY } = getCursorScreenPosition();
+
     drawImage(
         ctx,
         images["tileset"],
-        // x, y tileset
         cursorBlock[0] * TILESET_SIZE,
         cursorBlock[1] * TILESET_SIZE,
-        TILESET_SIZE*cursorSize[0],
-        TILESET_SIZE*cursorSize[1],
-        // x, y screen
+        TILESET_SIZE * cursorSize[0],
+        TILESET_SIZE * cursorSize[1],
         screenSourisX,
         screenSourisY,
-        TILE_SIZE*cursorSize[0],
-        TILE_SIZE*cursorSize[1],
+        TILE_SIZE * cursorSize[0],
+        TILE_SIZE * cursorSize[1],
         1
     );
+}
 
-    let cursorMap = [];
+function buildCursorMap() {
+    const cursorMap = [];
+    const { mapSourisX, mapSourisY } = getCursorScreenPosition();
+
     for (let i = 0; i < cursorSize[1]; i++) {
         cursorMap[i] = [];
         for (let j = 0; j < cursorSize[0]; j++) {
-            let mapSourisX = range(0, Math.floor(mouseX / TILE_SIZE) + Math.floor(posX / TILE_SIZE) + j,  MAP_WIDTH - 1);
-            let mapSourisY = range(0, Math.floor(mouseY / TILE_SIZE) + Math.floor(posY / TILE_SIZE) + i, MAP_HEIGHT - 1);
-            
+            const tileX = range(0, mapSourisX + j, MAP_WIDTH - 1);
+            const tileY = range(0, mapSourisY + i, MAP_HEIGHT - 1);
+
             let valid = true;
             for (let l = 0; l < layers.length; l++) {
-                let tile = layers[l].map[mapSourisY][mapSourisX];
+                const tile = layers[l].map[tileY][tileX];
                 if (!(tile.type === "grass" || tile.type === "sand" || tile.type === "empty")) {
                     valid = false;
                     break;
                 }
             }
+
             cursorMap[i][j] = valid;
-            let tileSelectColor = valid ? [0, 255, 0] : [255, 0, 0];
-            if (!hasResources(getCurrentBuildCost())) {
-                tileSelectColor = [255, 180, 0];
-            }
+            const tileSelectColor = valid ? [0, 255, 0] : [255, 0, 0];
+            const { screenSourisX, screenSourisY } = getCursorScreenPosition();
+            const finalColor = !hasResources(getCurrentBuildCost()) ? [255, 180, 0] : tileSelectColor;
+
             fillRect(
                 ctx,
                 screenSourisX + j * TILE_SIZE,
                 screenSourisY + i * TILE_SIZE,
                 TILE_SIZE,
                 TILE_SIZE,
-                tileSelectColor,
+                finalColor,
                 0.5
             );
         }
     }
 
-    // ----------UI----------
-    // Ressources
+    return cursorMap;
+}
+
+function drawInventoryUI() {
     fillRect(ctx, 0, 0, SCREEN_WIDTH, TILE_SIZE, [0,0,0], 0.5);
-    let gap = SCREEN_WIDTH / inventory.length;
+    const gap = SCREEN_WIDTH / inventory.length;
 
     for (let i = 0; i < inventory.length; i++) {
-        let item = inventory[i];
-        let tile = item.tile;
+        const item = inventory[i];
+        const tile = item.tile;
+        const x = i * gap;
+        const y = 0;
 
-        let x = i * gap;
-        let y = 0;
-
-        // item
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(
             images["items"],
-            // x, y tileset
             tile[0] * TILESET_SIZE,
             tile[1] * TILESET_SIZE,
             TILESET_SIZE,
             TILESET_SIZE,
-            // x, y screen
             x,
             y,
             TILE_SIZE,
             TILE_SIZE
         );
 
-        // quantité
-        drawText(ctx, "x" + item.count, 20, x + TILE_SIZE, y + (TILE_SIZE+20)/2);
+        drawText(ctx, "x" + item.count, 20, x + TILE_SIZE, y + (TILE_SIZE + 20) / 2);
     }
-    // Ressources need to build ...
+}
+
+function drawBuildCostUI() {
     const cost = getCurrentBuildCost();
-    // const buildName = getCurrentBuildName();
     const costX = 10;
     const costLineHeight = 26;
     const costWidth = 160;
@@ -475,8 +478,6 @@ function gameLoop() {
 
     fillRect(ctx, costX - 8, costY - 8, costWidth, costHeight, [0, 0, 0], 0.7);
     ctx.strokeStyle = "white";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(costX - 8, costY - 8, costWidth, costHeight);
 
     drawText(ctx, "Build Cost: ", 20, costX, costY + costLineHeight);
     for (let i = 0; i < COST_NAMES.length; i++) {
@@ -494,13 +495,15 @@ function gameLoop() {
             TILESET_SIZE,
             iconX,
             iconY,
-            TILE_SIZE/3,
-            TILE_SIZE/3
+            TILE_SIZE / 3,
+            TILE_SIZE / 3
         );
 
-        drawText(ctx, "x" + resourceCost, TILE_SIZE/3, iconX + 24, costY + costLineHeight * (i + 2));
+        drawText(ctx, "x" + resourceCost, TILE_SIZE / 3, iconX + 24, costY + costLineHeight * (i + 2));
     }
-    // ----------MINIMAP----------
+}
+
+function drawMinimap() {
     const minimapX = SCREEN_WIDTH - MINIMAP_WIDTH - MINIMAP_PADDING;
     const minimapY = SCREEN_HEIGHT - MINIMAP_HEIGHT - MINIMAP_PADDING;
 
@@ -512,8 +515,7 @@ function gameLoop() {
     for (let y = 0; y < MAP_HEIGHT; y++) {
         for (let x = 0; x < MAP_WIDTH; x++) {
             let color = [0, 0, 0];
-            
-            // Draw ground layer first
+
             const groundLayer = layers[0];
             if (groundLayer && groundLayer.visible) {
                 const tile = groundLayer.map[y][x];
@@ -523,8 +525,7 @@ function gameLoop() {
                     else if (tile.type === "grass") color = [40, 180, 40];
                 }
             }
-            
-            // Draw objects layer on top
+
             const objectLayer = layers[1];
             if (objectLayer && objectLayer.visible) {
                 const tile = objectLayer.map[y][x];
@@ -549,9 +550,72 @@ function gameLoop() {
     ctx.strokeStyle = "yellow";
     ctx.lineWidth = 1;
     ctx.strokeRect(viewX, viewY, viewW, viewH);
-    // ----------BUTTONS----------
+}
+
+function handleMapMovement() {
+    if (mouseY < edgeDetectionSize) {
+        posY -= Math.floor(Math.abs(mouseY - edgeDetectionSize) / 10);
+    }
+    if (mouseY > SCREEN_HEIGHT - edgeDetectionSize) {
+        posY += Math.floor(Math.abs(mouseY - (SCREEN_HEIGHT - edgeDetectionSize)) / 10);
+    }
+    if (mouseX < edgeDetectionSize) {
+        posX -= Math.floor(Math.abs(mouseX - edgeDetectionSize) / 10);
+    }
+    if (mouseX > SCREEN_WIDTH - edgeDetectionSize) {
+        posX += Math.floor(Math.abs(mouseX - (SCREEN_WIDTH - edgeDetectionSize)) / 10);
+    }
+
+    posX = Math.max(0, Math.min(posX, MAP_WIDTH * TILE_SIZE - SCREEN_WIDTH));
+    posY = Math.max(0, Math.min(posY, MAP_HEIGHT * TILE_SIZE - SCREEN_HEIGHT));
+}
+
+function handleBuildPlacement(cursorMap) {
+    if (!leftClick || !cursorCheck(cursorMap, cursorSize)) return;
+
+    const cost = getCurrentBuildCost();
+    if (!hasResources(cost)) return;
+
+    const baseX = range(0, Math.floor(mouseX / TILE_SIZE) + Math.floor(posX / TILE_SIZE), MAP_WIDTH - 1);
+    const baseY = range(0, Math.floor(mouseY / TILE_SIZE) + Math.floor(posY / TILE_SIZE), MAP_HEIGHT - 1);
+    applyCost(cost);
+
+    for (let i = 0; i < cursorSize[1]; i++) {
+        for (let j = 0; j < cursorSize[0]; j++) {
+            const mapSourisX = range(0, baseX + j, MAP_WIDTH - 1);
+            const mapSourisY = range(0, baseY + i, MAP_HEIGHT - 1);
+            const newTile = new Tile("object");
+            newTile.set(cursorBlock[0] + j, cursorBlock[1] + i);
+            newTile.resourceMultiplier = cursorMultiplier;
+            layers[1].map[mapSourisY][mapSourisX] = newTile;
+        }
+    }
+}
+
+function handleBuildSelection() {
+    if (!roll) return;
+
+    const choices = getBuildChoices();
+    if (choices.length) {
+        buildID[2] = mod(buildID[2] + notchs * rolldirection, choices.length);
+        updateCursorFromBuildID();
+    }
+    resetRoll();
+}
+
+function handleFullscreenKey() {
+    if (keys["f"] && FullscreenCooldown <= 0) {
+        toggleFullscreen();
+        FullscreenCooldown = 30;
+    } else {
+        FullscreenCooldown -= 1;
+    }
+}
+
+function drawBuildButton() {
     const buildButtonX = (SCREEN_WIDTH + TILE_SIZE) / 2;
     const buildButtonY = SCREEN_HEIGHT - TILE_SIZE * 2;
+
     fillRect(ctx, buildButtonX, buildButtonY, TILE_SIZE, TILE_SIZE, [0,0,0], 0.5);
     ctx.drawImage(
         images["items"],
@@ -564,66 +628,26 @@ function gameLoop() {
         TILE_SIZE,
         TILE_SIZE
     );
+}
 
-    // ----------DEBUG----------
-    // drawText(ctx, "fps: " + Math.floor(fps), 18, 0, TILE_SIZE+20);
-    // drawText(ctx, "seed: " + SEED, 18, 0, TILE_SIZE+40);
+function gameLoop() {
+    updateFrameStats();
 
-    // ----------logic/inputs----------
+    fillRect(ctx, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, [0,0,0]);
+    drawLayers(posX, posY);
+    drawCursorPreview();
 
-    // mouse actions
+    const cursorMap = buildCursorMap();
+    drawInventoryUI();
+    drawBuildCostUI();
+    drawMinimap();
+    drawBuildButton();
 
-    // Map movements with mouse at edges
-    if (mouseY < edgeDetectionSize){
-        posY -= Math.floor(Math.abs(mouseY - edgeDetectionSize) / 10);
-    }
-    if (mouseY > SCREEN_HEIGHT - edgeDetectionSize){
-        posY += Math.floor(Math.abs(mouseY - (SCREEN_HEIGHT - edgeDetectionSize)) / 10);
-    }
-    if (mouseX < edgeDetectionSize){
-        posX -= Math.floor(Math.abs(mouseX - edgeDetectionSize) / 10)   ;
-    }
-    if (mouseX > SCREEN_WIDTH - edgeDetectionSize){
-        posX += Math.floor(Math.abs(mouseX - (SCREEN_WIDTH - edgeDetectionSize)) / 10);
-    }
-    posX = Math.max(0, Math.min(posX, MAP_WIDTH * TILE_SIZE - SCREEN_WIDTH));
-    posY = Math.max(0, Math.min(posY, MAP_HEIGHT * TILE_SIZE - SCREEN_HEIGHT));
+    handleMapMovement();
+    handleBuildPlacement(cursorMap);
+    handleBuildSelection();
+    handleFullscreenKey();
 
-    // Build with left click
-    if (leftClick && cursorCheck(cursorMap, cursorSize)){
-        const cost = getCurrentBuildCost();
-        if (hasResources(cost)) {
-            const baseX = range(0, Math.floor(mouseX / TILE_SIZE) + Math.floor(posX / TILE_SIZE), MAP_WIDTH - 1);
-            const baseY = range(0, Math.floor(mouseY / TILE_SIZE) + Math.floor(posY / TILE_SIZE), MAP_HEIGHT - 1);
-            applyCost(cost);
-            for (let i = 0; i < cursorSize[1]; i++) {
-                for (let j = 0; j < cursorSize[0]; j++) {
-                    let mapSourisX = range(0, baseX + j, MAP_WIDTH - 1);
-                    let mapSourisY = range(0, baseY + i, MAP_HEIGHT - 1);
-                    let newTile = new Tile("object");
-                    newTile.set(cursorBlock[0] + j, cursorBlock[1] + i);
-                    newTile.resourceMultiplier = cursorMultiplier;
-                    layers[1].map[mapSourisY][mapSourisX] = newTile;
-                }
-            }
-        }
-    }
-
-    // Change build with mouse wheel
-    if (roll) {
-        const choices = getBuildChoices();
-        if (choices.length) {
-            buildID[2] = mod(buildID[2] + notchs * rolldirection, choices.length);
-            updateCursorFromBuildID();
-        }
-        resetRoll();
-    }
-
-    // fullscreen toggle
-    if (keys["f"] && FullscreenCooldown <= 0) {toggleFullscreen(), FullscreenCooldown = 30}
-    else {FullscreenCooldown-=1}
-
-    // refresh the loop
     if (running) {
         requestAnimationFrame(gameLoop);
         Loop++;
