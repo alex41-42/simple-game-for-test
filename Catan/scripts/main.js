@@ -254,17 +254,19 @@ function mod(n, m) {
 }
 
 function getBuildCategory() {
-    return build_names[0][buildID[0]]; // "buildings"
+    return BUILDING_CATEGORIES[buildID[0]]?.id ?? "";
 }
 
 function getBuildMaterial() {
-    return build_names[1][buildID[1]]; // "wood", "stone", or "clay"
+    return BUILDING_MATERIALS[buildID[1]] ?? "";
 }
 
 function getBuildChoices() {
     const category = getBuildCategory();
     const material = getBuildMaterial();
-    return Object.keys(build_tree[category] && build_tree[category][material] ? build_tree[category][material] : {});
+    return BUILDINGS
+        .filter(building => building.category === category && building.material === material)
+        .map(building => building.id);
 } // returns an array of build names for the current category and material
 
 function updateCursorFromBuildID() {
@@ -272,10 +274,14 @@ function updateCursorFromBuildID() {
     if (!choices.length) return;
     buildID[2] = mod(buildID[2], choices.length);
     const thirdArg = choices[buildID[2]];
-    const entry = build_tree[getBuildCategory()][getBuildMaterial()][thirdArg];
-    cursorSize = entry[1];
-    cursorBlock = entry[0];
-    cursorMultiplier = entry[3] ?? 1;
+    const entry = BUILDINGS.find(building =>
+        building.category === getBuildCategory() &&
+        building.material === getBuildMaterial() &&
+        building.id === thirdArg
+    );
+    cursorSize = entry?.size ?? [1, 1];
+    cursorBlock = entry?.sprite ?? [0, 0];
+    cursorMultiplier = entry?.multiplier ?? 1;
 } // updates cursorSize, cursorBlock, and cursorMultiplier based on the current buildID
 
 function getCurrentBuildKey() {
@@ -287,12 +293,16 @@ function getCurrentBuildEntry() {
     const category = getBuildCategory();
     const material = getBuildMaterial();
     const key = getCurrentBuildKey();
-    return build_tree[category]?.[material]?.[key];
+    return BUILDINGS.find(building =>
+        building.category === category &&
+        building.material === material &&
+        building.id === key
+    );
 } // returns the current build entry from the build_tree based on the current buildID
 
 function getCurrentBuildCost() {
     const entry = getCurrentBuildEntry();
-    return entry?.[2] ?? [0, 0, 0, 0, 0, 0];
+    return entry?.cost ?? [0, 0, 0, 0, 0, 0];
 } // returns the cost array for the current build entry, or a default array of zeros if the entry is not found
 
 function getCurrentBuildName() {
