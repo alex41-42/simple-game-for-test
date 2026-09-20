@@ -463,13 +463,13 @@ function drawBuildCostUI() {
     const costX = 0;
     const costLineHeight = TILE_SIZE / 2;
     const costWidth = 160;
-    const costHeight = (COST_NAMES.length + 1) * costLineHeight + titleTextHeight;
+    const costHeight = COST_NAMES.length* costLineHeight + titleTextHeight;
     const costY = SCREEN_HEIGHT - costHeight ;
 
     fillRect(ctx, costX, costY, costWidth, costHeight, [0, 0, 0], 0.5);
     ctx.strokeStyle = "white";
 
-    drawText(ctx, "Build Cost: ", 20, costX, costY);
+    drawText(ctx, "Build Cost: ", 20, costX, costY + titleTextHeight);
     for (let i = 0; i < COST_NAMES.length; i++) {
         const resourceCost = cost[i] ?? 0;
         const iconTile = inventory[i].tile;
@@ -489,7 +489,7 @@ function drawBuildCostUI() {
             TILE_SIZE / 2
         );
 
-        drawText(ctx, "x" + resourceCost, TILE_SIZE / 4, iconX + TILE_SIZE / 2, iconY + TILE_SIZE / 8);
+        drawText(ctx, "x" + resourceCost, TILE_SIZE / 4, iconX + TILE_SIZE / 2, iconY + TILE_SIZE / 4);
     }
 }
 
