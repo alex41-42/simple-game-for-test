@@ -331,27 +331,6 @@ function applyCost(cost) {
     }
 }
 
-function addResource(resourceName, amount = 1) {
-    const idx = COST_NAMES.indexOf(resourceName);
-    if (idx !== -1 && amount > 0) {
-        inventory[idx].count += amount;
-    }
-}
-
-function getNeighborResources(tile, layerName) {
-    if (!tile) return [];
-    if (layerName === "objects") {
-        if (tile.type === "forest") return ["wood"];
-        if (tile.type === "mountain") return ["rock","gold"];
-    }
-    if (layerName === "ground") {
-        if (tile.type === "grass") return ["wheat","meat"];
-        if (tile.type === "water") return ["meat"];
-        if (tile.type === "sand") return ["brick"];
-    }
-    return [];
-}
-
 updateCursorFromBuildID();
 
 function cursorCheck(list, cursorSize) {
