@@ -462,7 +462,7 @@ function drawBuildCostUI() {
     const costX = 0;
     const costLineHeight = TILE_SIZE / 2;
     const costWidth = 160;
-    const costHeight = COST_NAMES.length * costLineHeight;
+    const costHeight = (COST_NAMES.length + 1) * costLineHeight;
     const costY = SCREEN_HEIGHT - costHeight ;
 
     fillRect(ctx, costX, costY, costWidth, costHeight, [0, 0, 0], 0.5);
@@ -473,7 +473,7 @@ function drawBuildCostUI() {
         const resourceCost = cost[i] ?? 0;
         const iconTile = inventory[i].tile;
         const iconX = costX;
-        const iconY = costY + costLineHeight * (i + 1);
+        const iconY = costY + costLineHeight * i;
 
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(
