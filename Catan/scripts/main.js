@@ -458,11 +458,12 @@ function drawInventoryUI() {
 }
 
 function drawBuildCostUI() {
+    const titleTextHeight = 20;
     const cost = getCurrentBuildCost();
     const costX = 0;
     const costLineHeight = TILE_SIZE / 2;
     const costWidth = 160;
-    const costHeight = (COST_NAMES.length + 1) * costLineHeight;
+    const costHeight = (COST_NAMES.length + 1) * costLineHeight + titleTextHeight;
     const costY = SCREEN_HEIGHT - costHeight ;
 
     fillRect(ctx, costX, costY, costWidth, costHeight, [0, 0, 0], 0.5);
@@ -488,7 +489,7 @@ function drawBuildCostUI() {
             TILE_SIZE / 2
         );
 
-        drawText(ctx, "x" + resourceCost, TILE_SIZE / 3, iconX + TILE_SIZE / 2, iconY + TILE_SIZE / 6);
+        drawText(ctx, "x" + resourceCost, TILE_SIZE / 4, iconX + TILE_SIZE / 2, iconY + TILE_SIZE / 8);
     }
 }
 
