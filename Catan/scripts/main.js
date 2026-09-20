@@ -459,13 +459,13 @@ function drawInventoryUI() {
 
 function drawBuildCostUI() {
     const cost = getCurrentBuildCost();
-    const costX = 10;
+    const costX = 0;
     const costLineHeight = 26;
     const costWidth = 160;
     const costHeight = (COST_NAMES.length + 1) * costLineHeight + 12;
-    const costY = SCREEN_HEIGHT - costHeight - 10;
+    const costY = SCREEN_HEIGHT - costHeight ;
 
-    fillRect(ctx, costX - 8, costY - 8, costWidth, costHeight, [0, 0, 0], 0.7);
+    fillRect(ctx, costX - 8, costY - 8, costWidth, costHeight, [0, 0, 0], 0.5);
     ctx.strokeStyle = "white";
 
     drawText(ctx, "Build Cost: ", 20, costX, costY + costLineHeight);
