@@ -474,7 +474,7 @@ function drawBuildCostUI() {
         const resourceCost = cost[i] ?? 0;
         const iconTile = inventory[i].tile;
         const iconX = costX;
-        const iconY = costY + costLineHeight * i;
+        const iconY = costY + costLineHeight * i + titleTextHeight;
 
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(
