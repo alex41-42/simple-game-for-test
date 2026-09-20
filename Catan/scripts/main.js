@@ -489,7 +489,7 @@ function drawBuildCostUI() {
             TILE_SIZE / 2
         );
 
-        drawText(ctx, "x" + resourceCost, TILE_SIZE / 4, iconX + TILE_SIZE / 2, iconY + TILE_SIZE / 2);
+        drawText(ctx, "x" + resourceCost, TILE_SIZE / 4, iconX + TILE_SIZE / 2, iconY + TILE_SIZE / 3);
     }
 }
 
