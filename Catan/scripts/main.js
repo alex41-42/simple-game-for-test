@@ -460,7 +460,7 @@ function drawInventoryUI() {
 function drawBuildCostUI() {
     const cost = getCurrentBuildCost();
     const costX = 0;
-    const costLineHeight = 26;
+    const costLineHeight = 24;
     const costWidth = 160;
     const costHeight = (COST_NAMES.length + 1) * costLineHeight + 12;
     const costY = SCREEN_HEIGHT - costHeight ;
