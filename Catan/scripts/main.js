@@ -462,7 +462,7 @@ function drawBuildCostUI() {
     const cost = getCurrentBuildCost();
     const costX = 0;
     const costLineHeight = TILE_SIZE / 2;
-    const costWidth = 160;
+    const costWidth = TILE_SIZE * 3;
     const costHeight = COST_NAMES.length* costLineHeight + titleTextHeight;
     const costY = SCREEN_HEIGHT - costHeight ;
 
@@ -489,7 +489,7 @@ function drawBuildCostUI() {
             TILE_SIZE / 2
         );
 
-        drawText(ctx, "x" + resourceCost, TILE_SIZE / 4, iconX + TILE_SIZE / 2, iconY + TILE_SIZE / 4);
+        drawText(ctx, "x" + resourceCost, TILE_SIZE / 4, iconX + TILE_SIZE / 2, iconY + TILE_SIZE / 2);
     }
 }
 
