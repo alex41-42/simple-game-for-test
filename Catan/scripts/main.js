@@ -460,20 +460,20 @@ function drawInventoryUI() {
 function drawBuildCostUI() {
     const cost = getCurrentBuildCost();
     const costX = 0;
-    const costLineHeight = 24;
+    const costLineHeight = TILE_SIZE / 2;
     const costWidth = 160;
-    const costHeight = (COST_NAMES.length + 1) * costLineHeight + 12;
+    const costHeight = COST_NAMES.length * costLineHeight;
     const costY = SCREEN_HEIGHT - costHeight ;
 
-    fillRect(ctx, costX - 8, costY - 8, costWidth, costHeight, [0, 0, 0], 0.5);
+    fillRect(ctx, costX, costY, costWidth, costHeight, [0, 0, 0], 0.5);
     ctx.strokeStyle = "white";
 
-    drawText(ctx, "Build Cost: ", 20, costX, costY + costLineHeight);
+    drawText(ctx, "Build Cost: ", 20, costX, costY);
     for (let i = 0; i < COST_NAMES.length; i++) {
         const resourceCost = cost[i] ?? 0;
         const iconTile = inventory[i].tile;
         const iconX = costX;
-        const iconY = costY + costLineHeight * (i + 2) - 16;
+        const iconY = costY + costLineHeight * (i + 1);
 
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(
@@ -484,11 +484,11 @@ function drawBuildCostUI() {
             TILESET_SIZE,
             iconX,
             iconY,
-            TILE_SIZE / 3,
-            TILE_SIZE / 3
+            TILE_SIZE / 2,
+            TILE_SIZE / 2
         );
 
-        drawText(ctx, "x" + resourceCost, TILE_SIZE / 3, iconX + 24, costY + costLineHeight * (i + 2));
+        drawText(ctx, "x" + resourceCost, TILE_SIZE / 2, iconX + TILE_SIZE / 2, costY + costLineHeight * (i + 1));
     }
 }
 
