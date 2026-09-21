@@ -1,7 +1,7 @@
 const canvas = document.getElementById('Canvas');
 const ctx = canvas.getContext('2d');
 const PI = Math.PI;
-function range(a, b, c) {return Math.min(c, Math.max(b, a))}
+function clamp(a, b, c) {return Math.min(c, Math.max(b, a))}
 
 // Resize/Fullscreen
 function updateConstants() {
@@ -398,8 +398,8 @@ function buildCursorMap() {
     for (let i = 0; i < cursorSize[1]; i++) {
         cursorMap[i] = [];
         for (let j = 0; j < cursorSize[0]; j++) {
-            const tileX = range(0, mapSourisX + j, MAP_WIDTH - 1);
-            const tileY = range(0, mapSourisY + i, MAP_HEIGHT - 1);
+            const tileX = clamp(0, mapSourisX + j, MAP_WIDTH - 1);
+            const tileY = clamp(0, mapSourisY + i, MAP_HEIGHT - 1);
 
             let valid = true;
             for (let l = 0; l < layers.length; l++) {
@@ -566,14 +566,14 @@ function handleBuildPlacement(cursorMap) {
     const cost = getCurrentBuildCost();
     if (!hasResources(cost)) return;
 
-    const baseX = range(0, Math.floor(mouseX / TILE_SIZE) + Math.floor(posX / TILE_SIZE), MAP_WIDTH - 1);
-    const baseY = range(0, Math.floor(mouseY / TILE_SIZE) + Math.floor(posY / TILE_SIZE), MAP_HEIGHT - 1);
+    const baseX = clamp(0, Math.floor(mouseX / TILE_SIZE) + Math.floor(posX / TILE_SIZE), MAP_WIDTH - 1);
+    const baseY = clamp(0, Math.floor(mouseY / TILE_SIZE) + Math.floor(posY / TILE_SIZE), MAP_HEIGHT - 1);
     applyCost(cost);
 
     for (let i = 0; i < cursorSize[1]; i++) {
         for (let j = 0; j < cursorSize[0]; j++) {
-            const mapSourisX = range(0, baseX + j, MAP_WIDTH - 1);
-            const mapSourisY = range(0, baseY + i, MAP_HEIGHT - 1);
+            const mapSourisX = clamp(0, baseX + j, MAP_WIDTH - 1);
+            const mapSourisY = clamp(0, baseY + i, MAP_HEIGHT - 1);
             const newTile = new Tile("object");
             newTile.set(cursorBlock[0] + j, cursorBlock[1] + i);
             newTile.resourceMultiplier = cursorMultiplier;
