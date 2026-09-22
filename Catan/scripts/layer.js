@@ -26,14 +26,14 @@ class Layer {
                 let tile = null;
 
                 if (this.type === "ground") {
-                    if (value < 0.4375) tile = new Tile("water");
+                    if (value < 0.45) tile = new Tile("water");
                     else if (value < 0.475) tile = new Tile("sand");
                     else tile = new Tile("grass");
                 }
 
                 if (this.type === "objects") {
-                    if (value > 0.675) tile = new Tile("mountain");
-                    else if (value > 0.575) tile = new Tile("forest");
+                    if (value > 0.65) tile = new Tile("mountain");
+                    else if (value > 0.55) tile = new Tile("forest");
                     else tile = new Tile("empty");
                 }
 
