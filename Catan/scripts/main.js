@@ -670,6 +670,7 @@ function drawBuildMenu() {
     }
 }
 
+
 function gameLoop() {
     updateFrameStats();
 
