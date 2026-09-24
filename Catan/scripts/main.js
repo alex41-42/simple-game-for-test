@@ -464,7 +464,7 @@ function drawBuildCostUI() {
     const costLineHeight = TILE_SIZE / 2;
     const costWidth = TILE_SIZE * 3;
     const costHeight = COST_NAMES.length* costLineHeight + titleTextHeight;
-    const costY = SCREEN_HEIGHT - costHeight ;
+    const costY = SCREEN_HEIGHT - costHeight - TILE_SIZE;
 
     fillRect(ctx, costX, costY, costWidth, costHeight, [0, 0, 0], 0.5);
     ctx.strokeStyle = "white";
@@ -602,22 +602,72 @@ function handleFullscreenKey() {
     }
 }
 
-function drawBuildButton() {
-    const buildButtonX = (SCREEN_WIDTH + TILE_SIZE) / 2;
-    const buildButtonY = SCREEN_HEIGHT - TILE_SIZE * 2;
+function drawBuildMenu() {
+    const choices = getBuildChoices();
+    if (!choices.length) return;
 
-    fillRect(ctx, buildButtonX, buildButtonY, TILE_SIZE, TILE_SIZE, [0,0,0], 0.5);
-    ctx.drawImage(
-        images["items"],
-        1 * TILESET_SIZE,
-        3 * TILESET_SIZE,
-        TILESET_SIZE,
-        TILESET_SIZE,
-        buildButtonX,
-        buildButtonY,
-        TILE_SIZE,
-        TILE_SIZE
-    );
+    const menuWidth = Math.min(520, SCREEN_WIDTH - TILE_SIZE * 2);
+    const menuHeight = TILE_SIZE * 3;
+    const menuX = (SCREEN_WIDTH - menuWidth) / 2;
+    const menuY = SCREEN_HEIGHT - menuHeight - TILE_SIZE / 2;
+    const currentIndex = mod(buildID[2], choices.length);
+    const currentEntry = getCurrentBuildEntry();
+    const cardWidth = Math.min(96, (menuWidth - 32) / Math.min(choices.length, 5));
+    const cardsX = menuX + 16;
+    const cardsY = menuY + TILE_SIZE + 12;
+
+    fillRect(ctx, menuX, menuY, menuWidth, menuHeight, [12, 16, 22], 0.92);
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
+
+    drawText(ctx, "BUILDINGS", 18, menuX + 14, menuY + 22);
+    ctx.textAlign = "right";
+    drawText(ctx, getBuildMaterial().toUpperCase(), 14, menuX + menuWidth - 14, menuY + 22);
+    ctx.textAlign = "left";
+
+    for (let i = 0; i < Math.min(choices.length, 5); i++) {
+        const choiceIndex = mod(currentIndex + i - 2, choices.length);
+        const entry = BUILDINGS.find(building =>
+            building.category === getBuildCategory() &&
+            building.material === getBuildMaterial() &&
+            building.id === choices[choiceIndex]
+        );
+        if (!entry) continue;
+
+        const cardX = cardsX + i * cardWidth;
+        const isSelected = choiceIndex === currentIndex;
+        fillRect(ctx, cardX, cardsY, cardWidth - 6, TILE_SIZE * 1.55,
+            isSelected ? [55, 78, 92] : [25, 31, 39], 1);
+        ctx.strokeStyle = isSelected ? "#ffd34d" : "#59636d";
+        ctx.lineWidth = isSelected ? 3 : 1;
+        ctx.strokeRect(cardX, cardsY, cardWidth - 6, TILE_SIZE * 1.55);
+
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(
+            images["tileset"],
+            entry.sprite[0] * TILESET_SIZE,
+            entry.sprite[1] * TILESET_SIZE,
+            TILESET_SIZE * entry.size[0],
+            TILESET_SIZE * entry.size[1],
+            cardX + (cardWidth - 6 - TILE_SIZE) / 2,
+            cardsY + 6,
+            TILE_SIZE,
+            TILE_SIZE
+        );
+        ctx.textAlign = "center";
+        drawText(ctx, entry.id, 11, cardX + (cardWidth - 6) / 2, cardsY + TILE_SIZE + 18);
+        ctx.textAlign = "left";
+    }
+
+    if (currentEntry) {
+        const cost = getCurrentBuildCost();
+        const costText = cost
+            .map((amount, index) => amount > 0 ? `${COST_NAMES[index]}:${amount}` : "")
+            .filter(Boolean)
+            .join("  ") || "FREE";
+        drawText(ctx, `${currentEntry.id}  |  ${costText}`, 13, menuX + 14, menuY + menuHeight - 10);
+    }
 }
 
 function gameLoop() {
@@ -631,7 +681,7 @@ function gameLoop() {
     drawInventoryUI();
     drawBuildCostUI();
     drawMinimap();
-    drawBuildButton();
+    drawBuildMenu();
 
     handleMapMovement();
     handleBuildPlacement(cursorMap);
