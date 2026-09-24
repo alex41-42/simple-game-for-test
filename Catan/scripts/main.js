@@ -493,14 +493,10 @@ function drawBuildCostUI() {
     }
 }
 
-function drawMinimap() {
-    const minimapX = SCREEN_WIDTH - MINIMAP_WIDTH - MINIMAP_PADDING;
-    const minimapY = SCREEN_HEIGHT - MINIMAP_HEIGHT - MINIMAP_PADDING;
+function drawMinimap(minimapX, minimapY, minimapWidth = MINIMAP_WIDTH, minimapHeight = MINIMAP_HEIGHT) {
+    const minimapTileSize = Math.min(minimapWidth / MAP_WIDTH, minimapHeight / MAP_HEIGHT);
 
-    fillRect(ctx, minimapX, minimapY, MINIMAP_WIDTH, MINIMAP_HEIGHT, [0, 0, 0], 0.5);
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(minimapX, minimapY, MINIMAP_WIDTH, MINIMAP_HEIGHT);
+    fillRect(ctx, minimapX, minimapY, minimapWidth, minimapHeight, [0, 0, 0], 0.35);
 
     for (let y = 0; y < MAP_HEIGHT; y++) {
         for (let x = 0; x < MAP_WIDTH; x++) {
@@ -526,16 +522,16 @@ function drawMinimap() {
                 }
             }
 
-            const drawX = minimapX + x * MINIMAP_TILE_SIZE;
-            const drawY = minimapY + y * MINIMAP_TILE_SIZE;
-            fillRect(ctx, drawX, drawY, MINIMAP_TILE_SIZE, MINIMAP_TILE_SIZE, color, 1);
+            const drawX = minimapX + x * minimapTileSize;
+            const drawY = minimapY + y * minimapTileSize;
+            fillRect(ctx, drawX, drawY, minimapTileSize, minimapTileSize, color, 1);
         }
     }
 
-    const viewX = minimapX + (posX / (MAP_WIDTH * TILE_SIZE)) * MINIMAP_WIDTH;
-    const viewY = minimapY + (posY / (MAP_HEIGHT * TILE_SIZE)) * MINIMAP_HEIGHT;
-    const viewW = (SCREEN_WIDTH / (MAP_WIDTH * TILE_SIZE)) * MINIMAP_WIDTH;
-    const viewH = (SCREEN_HEIGHT / (MAP_HEIGHT * TILE_SIZE)) * MINIMAP_HEIGHT;
+    const viewX = minimapX + (posX / (MAP_WIDTH * TILE_SIZE)) * minimapWidth;
+    const viewY = minimapY + (posY / (MAP_HEIGHT * TILE_SIZE)) * minimapHeight;
+    const viewW = (SCREEN_WIDTH / (MAP_WIDTH * TILE_SIZE)) * minimapWidth;
+    const viewH = (SCREEN_HEIGHT / (MAP_HEIGHT * TILE_SIZE)) * minimapHeight;
 
     ctx.strokeStyle = "yellow";
     ctx.lineWidth = 1;
@@ -606,28 +602,37 @@ function drawBuildMenu() {
     const choices = getBuildChoices();
     if (!choices.length) return;
 
-    const menuWidth = Math.min(520, SCREEN_WIDTH - TILE_SIZE * 2);
-    const menuHeight = TILE_SIZE * 3;
-    const menuX = (SCREEN_WIDTH - menuWidth) / 2;
-    const menuY = SCREEN_HEIGHT - menuHeight - TILE_SIZE / 2;
+    const bannerHeight = Math.min(220, Math.max(170, SCREEN_HEIGHT * 0.28));
+    const bannerY = SCREEN_HEIGHT - bannerHeight;
+    const minimapSize = Math.min(160, bannerHeight - 24, SCREEN_WIDTH * 0.28);
+    const minimapX = 12;
+    const minimapY = bannerY + (bannerHeight - minimapSize) / 2;
+    const costWidth = Math.min(190, SCREEN_WIDTH * 0.28);
+    const contentX = minimapX + minimapSize + 24;
+    const contentWidth = Math.max(0, SCREEN_WIDTH - contentX - costWidth - 24);
     const currentIndex = mod(buildID[2], choices.length);
     const currentEntry = getCurrentBuildEntry();
-    const cardWidth = Math.min(96, (menuWidth - 32) / Math.min(choices.length, 5));
-    const cardsX = menuX + 16;
-    const cardsY = menuY + TILE_SIZE + 12;
 
-    fillRect(ctx, menuX, menuY, menuWidth, menuHeight, [12, 16, 22], 0.92);
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
+    fillRect(ctx, 0, bannerY, SCREEN_WIDTH, bannerHeight, [0, 0, 0], 0.55);
+    drawMinimap(minimapX, minimapY, minimapSize, minimapSize);
 
-    drawText(ctx, "BUILDINGS", 18, menuX + 14, menuY + 22);
-    ctx.textAlign = "right";
-    drawText(ctx, getBuildMaterial().toUpperCase(), 14, menuX + menuWidth - 14, menuY + 22);
-    ctx.textAlign = "left";
+    drawText(ctx, "BUILDINGS", 16, contentX, bannerY + 28);
+    drawText(ctx, getBuildMaterial().toUpperCase(), 13, contentX, bannerY + 47, [190, 200, 210]);
 
-    for (let i = 0; i < Math.min(choices.length, 5); i++) {
-        const choiceIndex = mod(currentIndex + i - 2, choices.length);
+    const visibleChoices = Math.min(
+        choices.length,
+        5,
+        Math.max(1, Math.floor((contentWidth + 8) / 62))
+    );
+    const cardGap = 8;
+    const cardWidth = Math.min(92, Math.max(54, (contentWidth - cardGap * (visibleChoices - 1)) / visibleChoices));
+    const cardsWidth = visibleChoices * cardWidth + (visibleChoices - 1) * cardGap;
+    const cardsX = contentX + Math.max(0, (contentWidth - cardsWidth) / 2);
+    const cardsY = bannerY + 60;
+    const cardHeight = Math.min(104, bannerHeight - 78);
+
+    for (let i = 0; i < visibleChoices; i++) {
+        const choiceIndex = mod(currentIndex + i - Math.floor(visibleChoices / 2), choices.length);
         const entry = BUILDINGS.find(building =>
             building.category === getBuildCategory() &&
             building.material === getBuildMaterial() &&
@@ -635,13 +640,9 @@ function drawBuildMenu() {
         );
         if (!entry) continue;
 
-        const cardX = cardsX + i * cardWidth;
+        const cardX = cardsX + i * (cardWidth + cardGap);
         const isSelected = choiceIndex === currentIndex;
-        fillRect(ctx, cardX, cardsY, cardWidth - 6, TILE_SIZE * 1.55,
-            isSelected ? [55, 78, 92] : [25, 31, 39], 1);
-        ctx.strokeStyle = isSelected ? "#ffd34d" : "#59636d";
-        ctx.lineWidth = isSelected ? 3 : 1;
-        ctx.strokeRect(cardX, cardsY, cardWidth - 6, TILE_SIZE * 1.55);
+        if (isSelected) fillRect(ctx, cardX - 5, cardsY - 5, cardWidth + 10, cardHeight + 10, [55, 78, 92], 0.8);
 
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(
@@ -650,24 +651,45 @@ function drawBuildMenu() {
             entry.sprite[1] * TILESET_SIZE,
             TILESET_SIZE * entry.size[0],
             TILESET_SIZE * entry.size[1],
-            cardX + (cardWidth - 6 - TILE_SIZE) / 2,
+            cardX + (cardWidth - TILE_SIZE) / 2,
             cardsY + 6,
             TILE_SIZE,
             TILE_SIZE
         );
         ctx.textAlign = "center";
-        drawText(ctx, entry.id, 11, cardX + (cardWidth - 6) / 2, cardsY + TILE_SIZE + 18);
+        drawText(ctx, entry.id, 11, cardX + cardWidth / 2, cardsY + TILE_SIZE + 18);
         ctx.textAlign = "left";
     }
 
     if (currentEntry) {
+        const costX = SCREEN_WIDTH - costWidth + 8;
         const cost = getCurrentBuildCost();
-        const costText = cost
-            .map((amount, index) => amount > 0 ? `${COST_NAMES[index]}:${amount}` : "")
-            .filter(Boolean)
-            .join("  ") || "FREE";
-        drawText(ctx, `${currentEntry.id}  |  ${costText}`, 13, menuX + 14, menuY + menuHeight - 10);
+        drawText(ctx, currentEntry.id.toUpperCase(), 16, costX, bannerY + 28);
+        drawText(ctx, "COST", 13, costX, bannerY + 47, [190, 200, 210]);
+
+        for (let i = 0; i < COST_NAMES.length; i++) {
+            const amount = cost[i] ?? 0;
+            if (amount <= 0) continue;
+
+            const iconTile = inventory[i].tile;
+            const costY = bannerY + 68 + i * 24;
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(
+                images["items"],
+                iconTile[0] * TILESET_SIZE,
+                iconTile[1] * TILESET_SIZE,
+                TILESET_SIZE,
+                TILESET_SIZE,
+                costX,
+                costY,
+                20,
+                20
+            );
+            drawText(ctx, `${COST_NAMES[i]}  x${amount}`, 13, costX + 27, costY + 15);
+        }
     }
+
+    ctx.textAlign = "left";
 }
 
 
@@ -680,8 +702,6 @@ function gameLoop() {
 
     const cursorMap = buildCursorMap();
     drawInventoryUI();
-    drawBuildCostUI();
-    drawMinimap();
     drawBuildMenu();
 
     handleMapMovement();
