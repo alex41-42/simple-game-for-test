@@ -602,9 +602,9 @@ function drawBuildMenu() {
     const choices = getBuildChoices();
     if (!choices.length) return;
 
-    const bannerHeight = Math.min(220, Math.max(170, SCREEN_HEIGHT * 0.28));
+    const bannerHeight = Math.min(180, Math.max(140, SCREEN_HEIGHT * 0.22));
     const bannerY = SCREEN_HEIGHT - bannerHeight;
-    const minimapSize = Math.min(160, bannerHeight - 24, SCREEN_WIDTH * 0.28);
+    const minimapSize = Math.min(128, bannerHeight - 20, SCREEN_WIDTH * 0.28);
     const minimapX = 12;
     const minimapY = bannerY + (bannerHeight - minimapSize) / 2;
     const costWidth = Math.min(190, SCREEN_WIDTH * 0.28);
@@ -616,8 +616,8 @@ function drawBuildMenu() {
     fillRect(ctx, 0, bannerY, SCREEN_WIDTH, bannerHeight, [0, 0, 0], 0.55);
     drawMinimap(minimapX, minimapY, minimapSize, minimapSize);
 
-    drawText(ctx, "BUILDINGS", 16, contentX, bannerY + 28);
-    drawText(ctx, getBuildMaterial().toUpperCase(), 13, contentX, bannerY + 47, [190, 200, 210]);
+    drawText(ctx, "BUILDINGS", 15, contentX, bannerY + 24);
+    drawText(ctx, getBuildMaterial().toUpperCase(), 12, contentX, bannerY + 40, [190, 200, 210]);
 
     const visibleChoices = Math.min(
         choices.length,
@@ -628,8 +628,8 @@ function drawBuildMenu() {
     const cardWidth = Math.min(92, Math.max(54, (contentWidth - cardGap * (visibleChoices - 1)) / visibleChoices));
     const cardsWidth = visibleChoices * cardWidth + (visibleChoices - 1) * cardGap;
     const cardsX = contentX + Math.max(0, (contentWidth - cardsWidth) / 2);
-    const cardsY = bannerY + 60;
-    const cardHeight = Math.min(104, bannerHeight - 78);
+    const cardsY = bannerY + 50;
+    const cardHeight = Math.min(82, bannerHeight - 62);
 
     for (let i = 0; i < visibleChoices; i++) {
         const choiceIndex = mod(currentIndex + i - Math.floor(visibleChoices / 2), choices.length);
@@ -664,15 +664,15 @@ function drawBuildMenu() {
     if (currentEntry) {
         const costX = SCREEN_WIDTH - costWidth + 8;
         const cost = getCurrentBuildCost();
-        drawText(ctx, currentEntry.id.toUpperCase(), 16, costX, bannerY + 28);
-        drawText(ctx, "COST", 13, costX, bannerY + 47, [190, 200, 210]);
+        drawText(ctx, currentEntry.id.toUpperCase(), 15, costX, bannerY + 24);
+        drawText(ctx, "COST", 12, costX, bannerY + 40, [190, 200, 210]);
 
         for (let i = 0; i < COST_NAMES.length; i++) {
             const amount = cost[i] ?? 0;
             if (amount <= 0) continue;
 
             const iconTile = inventory[i].tile;
-            const costY = bannerY + 68 + i * 24;
+            const costY = bannerY + 56 + i * 20;
             ctx.imageSmoothingEnabled = false;
             ctx.drawImage(
                 images["items"],
@@ -682,10 +682,10 @@ function drawBuildMenu() {
                 TILESET_SIZE,
                 costX,
                 costY,
-                20,
-                20
+                18,
+                18
             );
-            drawText(ctx, `${COST_NAMES[i]}  x${amount}`, 13, costX + 27, costY + 15);
+            drawText(ctx, `${COST_NAMES[i]}  x${amount}`, 12, costX + 24, costY + 14);
         }
     }
 
